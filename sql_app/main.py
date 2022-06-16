@@ -1,6 +1,6 @@
-
 import uvicorn
 from fastapi import Depends, FastAPI, HTTPException
+
 from sqlalchemy.orm import Session
 
 import crud  # import the files
@@ -10,12 +10,10 @@ from database import engine, SessionLocal  # import d functions
 
 models.Base.metadata.create_all(bind=engine)
 
-app = FastAPI()
-
+app = FastAPI(title="Ecom")
 
 
 #  Dependency
-
 
 def get_db():
     db = None
@@ -50,7 +48,7 @@ def resultset(cursor):
 
 
 # register API
-@app.post("/register", response_model=schemas.UserInfo)
+@app.post("/register", tags=["User"], response_model=schemas.UserInfo)
 def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
     db_user = crud.get_user_by_email(db, email=user.email)
     if db_user:
@@ -59,64 +57,90 @@ def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
 
 
 # login API
-@app.post("/login")
+@app.post("/login", tags=["User"])
 def login_user(user: schemas.UserLogin, db: Session = Depends(get_db)):
     db_user = crud.get_Login(db, email=user.email, password=user.password)
     if not db_user:
         raise HTTPException(status_code=400, detail="Wrong username/password")
     return {"message": "User found"}
 
-@app.get("/add_address")
-def add_address(username: str, address: schemas.UserAddress, db: Session = Depends(get_db)):
-    return crud.add_address(db, username, address)
+
+@app.post("/add_address", tags=["User"], )
+def add_address(user_id: int, address: schemas.UserAddress, db: Session = Depends(get_db)):
+    try:
+        return crud.add_address(user_id=user_id, address=address, db=db)
+    except Exception as e:
+        return "invalid value"
 
 
 # get user by username API
-@app.get("/get_user/{username}", response_model=schemas.UserInfo)
-def get_user(email, db: Session = Depends(get_db)):
-    db_user = crud.get_user_by_email(db, email=email)
+@app.get("/get_user/{user_id}", tags=["User"])
+def get_user(user_id, db: Session = Depends(get_db)):
+    db_user = crud.get_user_by_email(db, user_id=user_id)
     return db_user
 
 
-@app.post("/add_item")
+@app.post("/add_item", tags=["Admin"])
 def add_item(item: schemas.ItemInfo, db: Session = Depends(get_db)):
     return crud.add_table(db=db, item=item)
 
 
 # get item by id API
-@app.get("/get_item/{id}", )
+@app.get("/get_item/{id}", tags=["User"])
 def get_item(id, db: Session = Depends(get_db)):
     db_item = crud.get_item_by_id(db, id=id)
     return db_item
 
 
-@app.get("/get_all_item")
+@app.post("/add_category", tags=["Admin"])
+def add_category(category: schemas.ItemCategory, db: Session = Depends(get_db)):
+    return crud.add_category(db=db, category=category)
+
+
+@app.post("/add_discount", tags=["Admin"])
+def add_discount(discount: schemas.ItemDiscount, db: Session = Depends(get_db)):
+    return crud.add_discount(db=db, discount=discount)
+
+
+@app.post("/add_inventory", tags=["Admin"])
+def add_inventory(inventory: schemas.ItemInventory, db: Session = Depends(get_db)):
+    return crud.add_inventory(db=db, inventory=inventory)
+
+
+@app.post("/get_all_item", tags=["User"])
 def get_all_item(db: Session = Depends(get_db)):
     return crud.get_all_item(db)
 
 
 # delete item by id API
-@app.delete("/del_item/{id}", response_model=schemas.ItemAInfo)
+@app.delete("/del_item/{id}", tags=["Admin"], response_model=schemas.ItemAInfo)
 def del_item(id, db: Session = Depends(get_db)):
     db_item = crud.delete_item_by_id(db, id=id)
     if db_item:
         raise HTTPException(status_code=200, detail="Item found to delete")
     else:
         raise HTTPException(status_code=400, detail="Item Not found to delete")
-    return
+    return "Item deleted"
 
 
 # add to cart by username and the items to be added API
-@app.post("/add_to_cart/{username}", response_model=schemas.CartOwnerInfo)
-def add_item_cart(username, items: schemas.CartInfo, db: Session = Depends(get_db)):
-    db_cart = crud.add_to_cart(db=db, username=username, items=items)
+@app.post("/add_to_cart/{user_id}", tags=["User"])
+def add_item_cart(user_id, cart: schemas.CartCreate, db: Session = Depends(get_db)):
+    print(cart)
+    db_cart = crud.add_to_cart(db=db, cart=cart, user_id=user_id)
     if db_cart:
         raise HTTPException(status_code=200, detail="item registered to cart")
     return
 
 
+@app.post("/get_cart/{user_id}", tags=["User"])
+def get_cart(user_id, db: Session = Depends(get_db)):
+    db_cart = crud.get_cart(db=db, user_id=user_id)
+    return db_cart
+
+
 # delete items in the cart by id API
-@app.delete("/del_cart_item/{id}", response_model=schemas.CartItemAInfo)
+@app.delete("/del_cart_item/{id}", tags=["User"])
 def del_user(id, db: Session = Depends(get_db)):
     db_item = crud.delete_cart_item_by_id(db, id=id)
     if db_item:

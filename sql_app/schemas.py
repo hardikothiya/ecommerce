@@ -23,8 +23,7 @@ class UserInfo(UserInfoBase):
 
 
 class UserAddress(BaseModel):
-    id: int
-    user_id: int
+    user_id = int
     address_line1: str
     address_line2: str
     postal_code: int
@@ -45,8 +44,33 @@ class UserLogin(BaseModel):
 # base schema for items
 class ItemInfo(BaseModel):
     itemname: str
+    description: str
     itemprice: int
     itemimage: str
+    category_id: int
+    inventory_id: int
+    discount_id: int
+
+
+class ItemCategory(BaseModel):
+    category_name: str
+
+    class Config:
+        orm_mode = True
+
+
+class ItemInventory(BaseModel):
+    inventory_id: int
+    inventory_quantity: int
+
+    class Config:
+        orm_mode = True
+
+
+class ItemDiscount(BaseModel):
+    discount_percentage: int
+    description: str
+    active: bool
 
 
 # inherits from item data schema used for getting item by id
@@ -58,23 +82,15 @@ class ItemAInfo(ItemInfo):
 
 
 # base schema for relating a cart to it's user
-class CartOwnerInfo(BaseModel):
-    username: str
 
 
-class CartCreate(ItemInfo):
-    username: str
+class CartCreate(BaseModel):
+    product_id: int
+    quantity: int
 
 
-# base schema for adding items to cart
-class CartInfo(BaseModel):
-    itemname: str
-    itemprice: int
-
-
-# base schema for getting items in the cart by id
-class CartItemAInfo(CartInfo):
-    id: int
+class CartInfo(ItemInfo):
+    user_id: int
 
     class Config:
         orm_mode = True

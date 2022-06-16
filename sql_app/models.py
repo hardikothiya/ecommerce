@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, Boolean
+from sqlalchemy import Column, Integer, String, ForeignKey, Boolean, BigInteger
 from fastapi.param_functions import Form, Body
 from database import Base
 
@@ -9,7 +9,7 @@ class UserInfo(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     email = Column(String(50), unique=True)
-    mobile = Column(String(50))
+    mobile = Column(BigInteger)
     username = Column(String(50))
     password = Column(String(256))
     fullname = Column(String(50))
@@ -20,11 +20,11 @@ class UserAddress(Base):
     __tablename__ = "user_address"
 
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("user_info.id"))
+    user_id = Column(Integer, unique=True)
     address_line1 = Column(String(100))
     address_line2 = Column(String(100))
     postal_code = Column(Integer)
-    mobile_number = Column(Integer)
+    mobile_number = Column(BigInteger)
     city = Column(String(50))
     state = Column(String(50))
 
@@ -34,7 +34,7 @@ class ItemInfo(Base):
     __tablename__ = "item_info"
 
     id = Column(Integer, primary_key=True, index=True)
-    itemname = Column(String(50), unique=True)
+    itemname = Column(String(50),)
     itemprice = Column(Integer)
     description = Column(String(100))
     itemimage = Column(String(256), unique=True)
@@ -62,7 +62,7 @@ class ItemInventory(Base):
     __tablename__ = "item_inventory"
 
     id = Column(Integer, primary_key=True, index=True)
-    inventory_id = Column(Integer)
+    inventory_id = Column(Integer, ForeignKey("item_info.id"))
     inventory_quantity = Column(Integer)
 
     class Config:
@@ -82,7 +82,7 @@ class ItemDiscount(Base):
 
 
 # Cart/Order Database Model
-class CartInfo(ItemInfo):
+class CartInfo(Base):
     __tablename__ = "cart_info"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -98,7 +98,7 @@ class OrderDetails(Base):
     id = Column(Integer, ForeignKey("cart_info.id"))
     user_id = Column(Integer, ForeignKey("user_info.id"))
     quantity = Column(Integer)
-    order_id = Column(Integer, primary_key = True ,index=True)
+    order_id = Column(Integer, primary_key=True, index=True)
     total = Column(Integer)
     payment_id = Column(Integer, index=True)
 
