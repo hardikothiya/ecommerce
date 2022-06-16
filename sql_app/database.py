@@ -15,6 +15,16 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
 
-# cxnn = mysql.connector.connect(host='localhost', database='ecom_backend', user='root', password='hardik991322')
-# cursor = cxnn.cursor()
+cxnn = mysql.connector.connect(host='localhost', database='ecom_backend', user='root', password='hardik991322')
+cursor = cxnn.cursor()
 
+
+# SQLALCHEMY_DATABASE_URL = "mysql+mysqlconnector://sql6499676:kQCr914jWd@sql6.freemysqlhosting.net:3306/sql6499676"
+#
+# engine = create_engine(
+#     SQLALCHEMY_DATABASE_URL, echo=True, connect_args={'use_unicode': "utf-8"}
+# )
+#
+# SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+#
+# Base = declarative_base()

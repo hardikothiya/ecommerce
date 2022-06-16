@@ -6,6 +6,7 @@ class UserInfoBase(BaseModel):
     email: str
     username: str
     fullname: str
+    mobile: str
 
 
 # schema for user creation(registration)
@@ -16,6 +17,20 @@ class UserCreate(UserInfoBase):
 # inherits from user data schema
 class UserInfo(UserInfoBase):
     id: int
+
+    class Config:
+        orm_mode = True
+
+
+class UserAddress(BaseModel):
+    id: int
+    user_id: int
+    address_line1: str
+    address_line2: str
+    postal_code: int
+    mobile_number: int
+    city: str
+    state: str
 
     class Config:
         orm_mode = True
@@ -44,6 +59,10 @@ class ItemAInfo(ItemInfo):
 
 # base schema for relating a cart to it's user
 class CartOwnerInfo(BaseModel):
+    username: str
+
+
+class CartCreate(ItemInfo):
     username: str
 
 

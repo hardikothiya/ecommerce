@@ -1,19 +1,17 @@
-import json
 
 import uvicorn
-from fastapi.params import Form
+from fastapi import Depends, FastAPI, HTTPException
 from sqlalchemy.orm import Session
-from fastapi import Depends, FastAPI, HTTPException, Body
 
-import base64
-import models, schemas, crud  # import the files
+import crud  # import the files
+import models
+import schemas
 from database import engine, SessionLocal  # import d functions
 
 models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
 
-from fastapi import FastAPI, File, UploadFile
 
 
 #  Dependency
@@ -67,6 +65,10 @@ def login_user(user: schemas.UserLogin, db: Session = Depends(get_db)):
     if not db_user:
         raise HTTPException(status_code=400, detail="Wrong username/password")
     return {"message": "User found"}
+
+@app.get("/add_address")
+def add_address(username: str, address: schemas.UserAddress, db: Session = Depends(get_db)):
+    return crud.add_address(db, username, address)
 
 
 # get user by username API
@@ -140,6 +142,45 @@ def mpesa_callback(db: Session = Depends(get_db)):
 
 
 ######################################
+
+from fastapi.param_functions import Form
+from typing import Optional
+
+
+class KycInsertRequestForm:
+    def __init__(
+            self,
+            userid: int = Form(0),
+            country_id: int = Form(0),
+            document_type_id: int = Form(0),
+            name: Optional[str] = Form(''),
+            mode: Optional[str] = Form('INSERT'),
+
+    ):
+        self.mode = mode
+        self.userid = userid
+        self.country_id = country_id
+        self.document_type_id = document_type_id
+        self.name = name
+
+
+@app.post("/account/KYC_select")
+async def KYC_select(
+        form_data: KycInsertRequestForm = Depends()
+):
+    try:
+        print("Form data =======>> ", form_data.userid)
+        execstring = f"exec Sp_KYC '{form_data.mode}',{form_data.userid},{form_data.country_id}," \
+                     f"{form_data.document_type_id}, {form_data.name}"
+        print("string ----->>>", execstring)
+        return "Suceed"
+
+    except Exception as e:
+        return {
+            "code": 500,
+            "status": "error",
+            "message": " Exception {} occurred while KYC_select.".format(e)
+        }
 
 
 if __name__ == "__main__":

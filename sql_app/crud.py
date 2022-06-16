@@ -1,11 +1,4 @@
-'''
- * @author Munene Collins
- * 
- * * Created:   16.07.2020
- * 
- * (c) Copyright by Devligence Limited.
- * 
- '''
+
 
 from sqlalchemy.orm import Session
 import models, schemas
@@ -32,6 +25,19 @@ def create_user(db: Session, user: schemas.UserCreate):
     db.commit()
     db.refresh(db_user)
     return db_user
+
+
+# user address function
+def add_address(db: Session, username: str, address: schemas.UserAddress):
+    user = db.query(models.UserInfo).filter(models.UserInfo.username == username).first()
+    db_address = models.UserAddress(user=user.id, address_line1=address.address_line1,
+                                    address_line2=address.address_line2, city=address.city,
+                                    state=address.state, postal_code=address.postal_code,
+                                    mobile_number=address.mobile_number)
+    db.add(db_address)
+    db.commit()
+    db.refresh(db_address)
+    return db_address
 
 
 # Login Function
