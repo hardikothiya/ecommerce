@@ -129,7 +129,15 @@ def add_to_cart(db: Session, user_id: id, cart: schemas.CartCreate):
 
 def get_cart(db: Session, user_id: int):
     user = db.query(models.UserInfo).filter(models.UserInfo.id == user_id).first()
-    return db.query(models.CartInfo).filter(models.CartInfo.user_id == user.id).all
+    a = db.query(models.CartInfo).filter(models.CartInfo.user_id == user.id).all()
+    list_cart = []
+
+    print(a[1].product_id)
+    for x in range(len(a)):
+        b = get_item_by_id(db, a[x].product_id)
+        list_cart.append(b)
+
+    return list_cart
 
 
 # Delete item in the cart by id
