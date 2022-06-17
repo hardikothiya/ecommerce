@@ -43,8 +43,7 @@ def add_address(db: Session, user_id: int, address: schemas.UserAddress):
     user = db.query(models.UserInfo).filter(models.UserInfo.id == user_id).first()
 
     if user is None:
-        return {"msg" : "invalid user id/email"}
-
+        return {"msg": "invalid user id/email"}
 
     else:
         db_address = models.UserAddress(user_id=user.id, address_line1=address.address_line1,
@@ -160,11 +159,9 @@ def delete_item_by_id(db: Session, id: int):
 # Add to cart function
 def add_to_cart(db: Session, user_id: id, cart: schemas.CartCreate):
     user = db.query(models.UserInfo).filter(models.UserInfo.id == user_id).first()
-    print("user============", cart.product_id)
 
     item_price = db.query(models.ItemInfo).filter(models.ItemInfo.id == cart.product_id).first()
 
-    print("item_price=====================", item_price)
     final_amount = item_price.itemprice * cart.quantity
     db_cart = models.CartInfo(user_id=user.id, product_id=cart.product_id,
                               quantity=cart.quantity, item_amount=final_amount)
@@ -178,6 +175,8 @@ def get_cart(db: Session, user_id: int):
     user = db.query(models.UserInfo).filter(models.UserInfo.id == user_id).first()
     a = db.query(models.CartInfo).filter(models.CartInfo.user_id == user.id).all()
     list_cart = {}
+    quantity = 0
+    final_amount = 0
 
     if len(a) != 0:
         for x in range(len(a)):
@@ -185,9 +184,15 @@ def get_cart(db: Session, user_id: int):
             b['quantity'] = a[x].quantity
             b['item_amount'] = a[x].item_amount
             list_cart[a[x].id] = b
+
         return list_cart
+
     else:
         return "cart is empty"
+
+
+def get_order(db: Session, user_id: int):
+    return db.query(models.OrderDetails).filter(models.OrderDetails.user_id == user_id).first()
 
 
 # Delete item in the cart by id

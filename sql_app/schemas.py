@@ -101,7 +101,21 @@ class CartInfo(ItemInfo):
         orm_mode = True
 
 
+class OrderInfo(BaseModel):
+    user_id: int
+    product_id: int
+    quantity: int
+    order_date: str
+    order_status: str
+    order_total: int
+
+    class Config:
+        orm_mode = True
+
+
+
 # base schema for the payment api
 class UserPayment(BaseModel):
     phonenumber: int
     total: int
+

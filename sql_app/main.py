@@ -121,6 +121,12 @@ def get_cart(user_id, db: Session = Depends(get_db)):
     return db_cart
 
 
+@app.post("/order_details", tags=["User"])
+def get_order(user_id, db: Session = Depends(get_db)):
+    db_order = crud.get_order(user_id=user_id, db=db)
+    return db_order
+
+
 # delete items in the cart by id API
 @app.delete("/del_cart_item/{id}", tags=["User"])
 def del_user(id, db: Session = Depends(get_db)):
@@ -190,5 +196,3 @@ async def KYC_select(
 
 if __name__ == "__main__":
     uvicorn.run(app, host="127.0.0.1", port=8000)
-
-#
