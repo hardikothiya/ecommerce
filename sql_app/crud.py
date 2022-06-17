@@ -184,8 +184,14 @@ def get_cart(db: Session, user_id: int):
             b['quantity'] = a[x].quantity
             b['item_amount'] = a[x].item_amount
             list_cart[a[x].id] = b
+            quantity += a[x].quantity
+            final_amount += a[x].item_amount
 
-        return list_cart
+        return {
+            "all_item ": list_cart,
+            "quantity": quantity,
+            "bill_amount": final_amount
+        }
 
     else:
         return "cart is empty"
@@ -193,6 +199,15 @@ def get_cart(db: Session, user_id: int):
 
 def get_order(db: Session, user_id: int):
     return db.query(models.OrderDetails).filter(models.OrderDetails.user_id == user_id).first()
+
+
+def order_details(db: Session, user_id: int):
+    a = get_cart(db=db, user_id=user_id)
+    db_order = models.OrderDetails(bill_amount=a['bill_amount'], quantity=a['quantity'], user_id=user_id)
+    db.add(db_order)
+    db.commit()
+    db.refresh(db_order)
+    return a
 
 
 # Delete item in the cart by id

@@ -123,7 +123,7 @@ def get_cart(user_id, db: Session = Depends(get_db)):
 
 @app.post("/order_details", tags=["User"])
 def get_order(user_id, db: Session = Depends(get_db)):
-    db_order = crud.get_order(user_id=user_id, db=db)
+    db_order = crud.order_details(user_id=user_id, db=db)
     return db_order
 
 
@@ -184,7 +184,7 @@ async def KYC_select(
         execstring = f"exec Sp_KYC '{form_data.mode}',{form_data.userid},{form_data.country_id}," \
                      f"{form_data.document_type_id}, {form_data.name}"
         print("string ----->>>", execstring)
-        return "Suceed"
+        return "Succeed"
 
     except Exception as e:
         return {
