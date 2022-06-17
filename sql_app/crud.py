@@ -9,7 +9,14 @@ import base64
 
 
 # Get user by username function
-def get_user_by_email(db: Session, user_id: int):
+def get_user_by_email(db: Session, email: str):
+    a = db.query(models.UserInfo).filter(models.UserInfo.email == email).first()
+
+    if a:
+        return True
+
+
+def get_user_by_userid(db: Session, user_id: int):
     a = db.query(models.UserInfo).filter(models.UserInfo.id == user_id).first()
     b = db.query(models.UserAddress).filter(models.UserAddress.user_id == user_id).first()
 
@@ -46,11 +53,11 @@ def add_address(db: Session, user_id: int, address: schemas.UserAddress):
 
 
 # Login Function
-def get_Login(db: Session, email: str, password: str):
-    db_user = db.query(models.UserInfo).filter(models.UserInfo.email == email).first()
-    print(email, password)
-    passw: bool = bcrypt.checkpw(password.encode('utf-8'), db_user.password.encode('utf-8'))
-    return passw
+def get_Login(db: Session, user: schemas.UserLogin):
+    db_user = db.query(models.UserInfo).filter(models.UserInfo.email == user.email).first()
+    passw: bool = bcrypt.checkpw(user.password.encode('utf-8'), db_user.password.encode('utf-8'))
+    if passw:
+        return db_user
 
 
 # Get item by id function
@@ -61,18 +68,44 @@ def get_item_by_id(db: Session, id: int):
         join(models.ItemCategory, models.ItemInfo.category_id == models.ItemCategory.id). \
         join(models.ItemDiscount, models.ItemInfo.discount_id == models.ItemDiscount.id).first()
 
-    return a
+    b = {
+        'itemid': a[0].id,
+        'itemname': a[0].itemname,
+        'itemprice': a[0].itemprice,
+        'itemimage': a[0].itemimage,
+        'description': a[0].description,
+        'category_name': a[1].category_name,
+        'discount_percentage': a[2].discount_percentage,
+
+    }
+
+    return b
 
 
 def get_all_item(db: Session):
-    return db.query(models.ItemInfo).all()
+    a = db.query(models.ItemInfo, models.ItemCategory, models.ItemDiscount). \
+        join(models.ItemCategory, models.ItemInfo.category_id == models.ItemCategory.id). \
+        join(models.ItemDiscount, models.ItemInfo.discount_id == models.ItemDiscount.id).all()
+
+    b = []
+    for i in a:
+        b.append({
+            'itemid': i[0].id,
+            'itemname': i[0].itemname,
+            'itemprice': i[0].itemprice,
+            'itemimage': i[0].itemimage,
+            'description': i[0].description,
+            'category_name': i[1].category_name,
+            'discount_percentage': i[2].discount_percentage})
+
+    return b
 
 
 # Add items to DB function
 def add_table(db: Session, item: schemas.ItemInfo):
     db_item = models.ItemInfo(itemname=item.itemname, itemprice=item.itemprice, itemimage=item.itemimage,
                               description=item.description, category_id=item.category_id,
-                              inventory_id=item.inventory_id, discount_id=item.discount_id)
+                              discount_id=item.discount_id)
     db.add(db_item)
     db.commit()
     db.refresh(db_item)
@@ -98,12 +131,15 @@ def add_category(db: Session, category: schemas.ItemCategory):
 
 
 def add_inventory(db: Session, inventory: schemas.ItemInventory):
-    db_inventory = models.ItemInventory(inventory_quantity=inventory.inventory_quantity,
-                                        inventory_id=inventory.inventory_id)
-    db.add(db_inventory)
-    db.commit()
-    db.refresh(db_inventory)
-    return db_inventory
+    try:
+        db_inventory = models.ItemInventory(inventory_quantity=inventory.inventory_quantity,
+                                            item_id=inventory.item_id)
+        db.add(db_inventory)
+        db.commit()
+        db.refresh(db_inventory)
+        return db_inventory
+    except Exception as e:
+        return "Error occurred"
 
 
 # Delete item from DB by id function
@@ -119,8 +155,10 @@ def delete_item_by_id(db: Session, id: int):
 # Add to cart function
 def add_to_cart(db: Session, user_id: id, cart: schemas.CartCreate):
     user = db.query(models.UserInfo).filter(models.UserInfo.id == user_id).first()
-    print("cart==============>>>", cart.product_id)
-    db_cart = models.CartInfo(user_id=user.id, product_id=cart.product_id, quantity=cart.quantity)
+    item_price = db.query(models.ItemInfo).filter(models.ItemInfo.itemprice == cart.product_id).first()
+    final_amount = item_price.itemprice * cart.quantity
+    db_cart = models.CartInfo(user_id=user.id, product_id=cart.product_id,
+                              quantity=cart.quantity, item_amount=final_amount)
     db.add(db_cart)
     db.commit()
     db.refresh(db_cart)
@@ -130,14 +168,17 @@ def add_to_cart(db: Session, user_id: id, cart: schemas.CartCreate):
 def get_cart(db: Session, user_id: int):
     user = db.query(models.UserInfo).filter(models.UserInfo.id == user_id).first()
     a = db.query(models.CartInfo).filter(models.CartInfo.user_id == user.id).all()
-    list_cart = []
+    list_cart = {}
 
-    print(a[1].product_id)
-    for x in range(len(a)):
-        b = get_item_by_id(db, a[x].product_id)
-        list_cart.append(b)
-
-    return list_cart
+    if len(a) != 0:
+        for x in range(len(a)):
+            b = get_item_by_id(db, a[x].product_id)
+            b['quantity'] = a[x].quantity
+            b['item_amount'] = a[x].item_amount
+            list_cart[a[x].id] = b
+        return list_cart
+    else:
+        return "cart is empty"
 
 
 # Delete item in the cart by id
@@ -149,39 +190,38 @@ def delete_cart_item_by_id(db: Session, id: int):
     db.commit()
     return delitem
 
-
 # Mpesa processing function(Not Complete Yet)
-def payment(db: Session, phone_number: int, total: int):
-    consumer_key = 'consumer_key'
-    consumer_secret = 'consumer_secret'
-    api_URL = 'https://sandbox.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials'
-
-    r = requests.get(api_URL, auth=HTTPBasicAuth(consumer_key, consumer_secret))
-    mpesa_access_token = json.loads(r.text)
-    validated_mpesa_access_token = mpesa_access_token['access_token']
-
-    lipa_time = datetime.now().strftime('%Y%m%d%H%M%S')
-    Business_short_code = 'short_code'  # replace with the business short code
-    passkey = "pass_key"
-    data_to_encode = Business_short_code + passkey + lipa_time
-    online_password = base64.b64encode(data_to_encode.encode())
-    decode_password = online_password.decode('utf-8')
-
-    access_token = validated_mpesa_access_token
-    api_url = "https://sandbox.safaricom.co.ke/mpesa/stkpush/v1/processrequest"
-    headers = {"Authorization": "Bearer %s" % access_token}
-    request = {
-        "BusinessShortCode": Business_short_code,
-        "Password": decode_password,
-        "Timestamp": lipa_time,
-        "TransactionType": "CustomerPayBillOnline",
-        "Amount": total,
-        "PartyA": phone_number,
-        "PartyB": Business_short_code,
-        "PhoneNumber": phone_number,
-        "CallBackURL": "https://127.0.0.1:8000/callback",  # Mpesa Callback
-        "AccountReference": "User Payment",
-        "TransactionDesc": "Testing stk push"
-    }
-    response = requests.post(api_url, json=request, headers=headers)
-    return response.text
+# def payment(db: Session, phone_number: int, total: int):
+#     consumer_key = 'consumer_key'
+#     consumer_secret = 'consumer_secret'
+#     api_URL = 'https://sandbox.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials'
+#
+#     r = requests.get(api_URL, auth=HTTPBasicAuth(consumer_key, consumer_secret))
+#     mpesa_access_token = json.loads(r.text)
+#     validated_mpesa_access_token = mpesa_access_token['access_token']
+#
+#     lipa_time = datetime.now().strftime('%Y%m%d%H%M%S')
+#     Business_short_code = 'short_code'  # replace with the business short code
+#     passkey = "pass_key"
+#     data_to_encode = Business_short_code + passkey + lipa_time
+#     online_password = base64.b64encode(data_to_encode.encode())
+#     decode_password = online_password.decode('utf-8')
+#
+#     access_token = validated_mpesa_access_token
+#     api_url = "https://sandbox.safaricom.co.ke/mpesa/stkpush/v1/processrequest"
+#     headers = {"Authorization": "Bearer %s" % access_token}
+#     request = {
+#         "BusinessShortCode": Business_short_code,
+#         "Password": decode_password,
+#         "Timestamp": lipa_time,
+#         "TransactionType": "CustomerPayBillOnline",
+#         "Amount": total,
+#         "PartyA": phone_number,
+#         "PartyB": Business_short_code,
+#         "PhoneNumber": phone_number,
+#         "CallBackURL": "https://127.0.0.1:8000/callback",  # Mpesa Callback
+#         "AccountReference": "User Payment",
+#         "TransactionDesc": "Testing stk push"
+#     }
+#     response = requests.post(api_url, json=request, headers=headers)
+#     return response.text

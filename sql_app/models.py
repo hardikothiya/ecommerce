@@ -34,12 +34,12 @@ class ItemInfo(Base):
     __tablename__ = "item_info"
 
     id = Column(Integer, primary_key=True, index=True)
-    itemname = Column(String(50),)
-    itemprice = Column(Integer)
-    description = Column(String(100))
-    itemimage = Column(String(256), unique=True)
-    category_id = Column(Integer, ForeignKey("item_category.id"))
-    inventory_id = Column(Integer, ForeignKey("item_inventory.id"))
+    itemname = Column(String(50), nullable=False)
+    itemprice = Column(Integer, nullable=False)
+    description = Column(String(100), nullable=False)
+    itemimage = Column(String(256), unique=True, nullable=False)
+    category_id = Column(Integer, ForeignKey("item_category.id"), nullable=False)
+    inventory_id = Column(Integer, index=True, default=id)
     discount_id = Column(Integer, ForeignKey("item_discount.id"))
 
     class Config:
@@ -51,7 +51,7 @@ class ItemCategory(Base):
     __tablename__ = "item_category"
 
     id = Column(Integer, primary_key=True, index=True)
-    category_name = Column(String(50), unique=True)
+    category_name = Column(String(50), unique=True, nullable=False, default="general")
 
     class Config:
         orm_mode = True
@@ -62,8 +62,8 @@ class ItemInventory(Base):
     __tablename__ = "item_inventory"
 
     id = Column(Integer, primary_key=True, index=True)
-    inventory_id = Column(Integer, ForeignKey("item_info.id"))
-    inventory_quantity = Column(Integer)
+    item_id = Column(Integer, ForeignKey("item_info.id"), nullable=False, )
+    inventory_quantity = Column(Integer, nullable=False)
 
     class Config:
         orm_mode = True
@@ -77,8 +77,8 @@ class ItemDiscount(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     description = Column(String(100))
-    discount_percentage = Column(Integer)
-    active = Column(Boolean)
+    discount_percentage = Column(Integer, nullable=False)
+    active = Column(Boolean, nullable=False)
 
 
 # Cart/Order Database Model
@@ -88,18 +88,19 @@ class CartInfo(Base):
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("user_info.id"))
     product_id = Column(Integer, ForeignKey('item_info.id'))
-    quantity = Column(Integer)
+    quantity = Column(Integer, nullable=False, default=1)
+    item_amount = Column(Integer, nullable=False)
 
 
 # Cart/Order Database Model
 class OrderDetails(Base):
     __tablename__ = "order_details"
 
-    id = Column(Integer, ForeignKey("cart_info.id"))
+    id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("user_info.id"))
-    quantity = Column(Integer)
-    order_id = Column(Integer, primary_key=True, index=True)
-    total = Column(Integer)
+    quantity = Column(Integer, nullable=False, default=1)
+    order_id = Column(Integer, index=True)
+    total = Column(Integer, nullable=False)
     payment_id = Column(Integer, index=True)
 
 
@@ -108,8 +109,8 @@ class PaymentInfo(Base):
     __tablename__ = "payment_info"
 
     id = Column(Integer, primary_key=True, index=True)
-    payment_id = Column(Integer, ForeignKey("order_details.payment_id"))
-    order_id = Column(Integer, ForeignKey("order_details.order_id"))
-    user_id = Column(Integer, ForeignKey("user_info.id"))
+    payment_id = Column(Integer, ForeignKey("order_details.payment_id"), nullable=False)
+    order_id = Column(Integer, ForeignKey("order_details.order_id"), nullable=False)
+    user_id = Column(Integer, ForeignKey("user_info.id"), nullable=False)
     status = Column(String(50))
     created_at = Column(String(50))

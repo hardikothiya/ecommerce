@@ -6,12 +6,18 @@ class UserInfoBase(BaseModel):
     email: str
     username: str
     fullname: str
-    mobile: str
+    mobile: int
+
+    class Config:
+        orm_mode = True
 
 
 # schema for user creation(registration)
 class UserCreate(UserInfoBase):
     password: str
+
+    class Config:
+        orm_mode = True
 
 
 # inherits from user data schema
@@ -48,7 +54,6 @@ class ItemInfo(BaseModel):
     itemprice: int
     itemimage: str
     category_id: int
-    inventory_id: int
     discount_id: int
 
 
@@ -60,7 +65,7 @@ class ItemCategory(BaseModel):
 
 
 class ItemInventory(BaseModel):
-    inventory_id: int
+    item_id: int
     inventory_quantity: int
 
     class Config:
@@ -87,6 +92,7 @@ class ItemAInfo(ItemInfo):
 class CartCreate(BaseModel):
     product_id: int
     quantity: int
+    item_amount: int
 
 
 class CartInfo(ItemInfo):

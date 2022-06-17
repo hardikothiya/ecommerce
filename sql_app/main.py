@@ -26,46 +26,28 @@ def get_db():
 
 ###########################################################################
 
-
-def resultset(cursor):
-    """"
-    function for get all result set with key-value pair from table
-    """
-    sets = []
-    while True:
-        names = [c[0] for c in cursor.description]
-        set_ = []
-        while True:
-            row_raw = cursor.fetchone()
-            if row_raw is None:
-                break
-            row = dict(zip(names, row_raw))
-            set_.append(row)
-        sets.append(list(set_))
-        if cursor.nextset() is None or cursor.description is None:
-            break
-    return sets
-
-
 # register API
 @app.post("/register", tags=["User"], response_model=schemas.UserInfo)
 def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
-    db_user = crud.get_user_by_email(db, email=user.email)
-    if db_user:
+    a = crud.get_user_by_email(db, user.email)
+
+    if a:
         raise HTTPException(status_code=400, detail="Email already registered")
-    return crud.create_user(db=db, user=user)
+    else:
+
+        return crud.create_user(db=db, user=user)
 
 
 # login API
-@app.post("/login", tags=["User"])
+@app.post("/login", tags=["User"], response_model=schemas.UserInfo)
 def login_user(user: schemas.UserLogin, db: Session = Depends(get_db)):
-    db_user = crud.get_Login(db, email=user.email, password=user.password)
+    db_user = crud.get_Login(db, user)
     if not db_user:
         raise HTTPException(status_code=400, detail="Wrong username/password")
-    return {"message": "User found"}
+    return db_user
 
 
-@app.post("/add_address", tags=["User"], )
+@app.post("/add_address", tags=["User"], response_model=schemas.UserAddress)
 def add_address(user_id: int, address: schemas.UserAddress, db: Session = Depends(get_db)):
     try:
         return crud.add_address(user_id=user_id, address=address, db=db)
@@ -76,7 +58,7 @@ def add_address(user_id: int, address: schemas.UserAddress, db: Session = Depend
 # get user by username API
 @app.get("/get_user/{user_id}", tags=["User"])
 def get_user(user_id, db: Session = Depends(get_db)):
-    db_user = crud.get_user_by_email(db, user_id=user_id)
+    db_user = crud.get_user_by_userid(db, user_id=user_id)
     return db_user
 
 
@@ -120,7 +102,6 @@ def del_item(id, db: Session = Depends(get_db)):
         raise HTTPException(status_code=200, detail="Item found to delete")
     else:
         raise HTTPException(status_code=400, detail="Item Not found to delete")
-    return "Item deleted"
 
 
 # add to cart by username and the items to be added API
@@ -147,7 +128,6 @@ def del_user(id, db: Session = Depends(get_db)):
         raise HTTPException(status_code=200, detail="Item found to delete")
     else:
         raise HTTPException(status_code=400, detail="Item Not found to delete")
-    return
 
 
 # mpesa payment API
