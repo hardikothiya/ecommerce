@@ -92,7 +92,6 @@ class ItemAInfo(ItemInfo):
 class CartCreate(BaseModel):
     product_id: int
     quantity: int
-    item_amount: int
 
 
 class CartInfo(ItemInfo):

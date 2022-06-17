@@ -47,10 +47,11 @@ def login_user(user: schemas.UserLogin, db: Session = Depends(get_db)):
     return db_user
 
 
-@app.post("/add_address", tags=["User"], response_model=schemas.UserAddress)
+@app.post("/add_address", tags=["User"])
 def add_address(user_id: int, address: schemas.UserAddress, db: Session = Depends(get_db)):
     try:
-        return crud.add_address(user_id=user_id, address=address, db=db)
+        a = crud.add_address(user_id=user_id, address=address, db=db)
+        return a
     except Exception as e:
         return "invalid value"
 
@@ -189,3 +190,5 @@ async def KYC_select(
 
 if __name__ == "__main__":
     uvicorn.run(app, host="127.0.0.1", port=8000)
+
+#

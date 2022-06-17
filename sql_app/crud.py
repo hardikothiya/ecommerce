@@ -41,15 +41,20 @@ def create_user(db: Session, user: schemas.UserCreate):
 # user address function
 def add_address(db: Session, user_id: int, address: schemas.UserAddress):
     user = db.query(models.UserInfo).filter(models.UserInfo.id == user_id).first()
-    print(user.id)
-    db_address = models.UserAddress(user_id=user.id, address_line1=address.address_line1,
-                                    address_line2=address.address_line2, city=address.city,
-                                    state=address.state, postal_code=address.postal_code,
-                                    mobile_number=address.mobile_number)
-    db.add(db_address)
-    db.commit()
-    db.refresh(db_address)
-    return db_address
+
+    if user is None:
+        return {"msg" : "invalid user id/email"}
+
+
+    else:
+        db_address = models.UserAddress(user_id=user.id, address_line1=address.address_line1,
+                                        address_line2=address.address_line2, city=address.city,
+                                        state=address.state, postal_code=address.postal_code,
+                                        mobile_number=address.mobile_number)
+        db.add(db_address)
+        db.commit()
+        db.refresh(db_address)
+        return db_address
 
 
 # Login Function
@@ -155,7 +160,11 @@ def delete_item_by_id(db: Session, id: int):
 # Add to cart function
 def add_to_cart(db: Session, user_id: id, cart: schemas.CartCreate):
     user = db.query(models.UserInfo).filter(models.UserInfo.id == user_id).first()
-    item_price = db.query(models.ItemInfo).filter(models.ItemInfo.itemprice == cart.product_id).first()
+    print("user============", cart.product_id)
+
+    item_price = db.query(models.ItemInfo).filter(models.ItemInfo.id == cart.product_id).first()
+
+    print("item_price=====================", item_price)
     final_amount = item_price.itemprice * cart.quantity
     db_cart = models.CartInfo(user_id=user.id, product_id=cart.product_id,
                               quantity=cart.quantity, item_amount=final_amount)
