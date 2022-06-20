@@ -1,11 +1,6 @@
 from sqlalchemy.orm import Session
 import models, schemas
 import bcrypt
-import requests
-from requests.auth import HTTPBasicAuth
-import json
-from datetime import datetime
-import base64
 
 
 # Get user by username function

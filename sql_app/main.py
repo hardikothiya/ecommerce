@@ -4,10 +4,10 @@ from common import send_mail
 
 from sqlalchemy.orm import Session
 
-import crud  # import the files
+import crud
 import models
 import schemas
-from database import engine, SessionLocal  # import d functions
+from database import engine, SessionLocal
 
 
 models.Base.metadata.create_all(bind=engine)

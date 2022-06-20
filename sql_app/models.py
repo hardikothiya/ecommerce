@@ -1,5 +1,4 @@
 from sqlalchemy import Column, Integer, String, ForeignKey, Boolean, BigInteger
-from fastapi.param_functions import Form, Body
 from database import Base
 
 
