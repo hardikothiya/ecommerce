@@ -92,7 +92,7 @@ def add_inventory(inventory: schemas.ItemInventory, db: Session = Depends(get_db
     return crud.add_inventory(db=db, inventory=inventory)
 
 
-@app.post("/get_all_item", tags=["User"],  dependencies=[Depends(RateLimiter(times=2, seconds=5))])
+@app.post("/get_all_item", tags=["User"])
 def get_all_item(db: Session = Depends(get_db)):
     return crud.get_all_item(db)
 
