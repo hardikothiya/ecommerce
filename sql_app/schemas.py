@@ -113,9 +113,7 @@ class OrderInfo(BaseModel):
         orm_mode = True
 
 
-
 # base schema for the payment api
 class UserPayment(BaseModel):
-    phonenumber: int
+    mobile: int
     total: int
-

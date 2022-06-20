@@ -104,13 +104,13 @@ class OrderDetails(Base):
     payment_id = Column(Integer, index=True)
 
 
-# # Payment Database Model
-# class PaymentInfo(Base):
-#     __tablename__ = "payment_info"
-#
-#     id = Column(Integer, primary_key=True, index=True)
-#     payment_id = Column(Integer, ForeignKey("order_details.payment_id"), nullable=False)
-#     order_id = Column(Integer, ForeignKey("order_details.order_id"), nullable=False)
-#     user_id = Column(Integer, ForeignKey("user_info.id"), nullable=False)
-#     status = Column(String(50))
-#     created_at = Column(String(50))
+# Payment Database Model
+class PaymentInfo(Base):
+    __tablename__ = "payment_info"
+
+    id = Column(Integer, primary_key=True, index=True)
+    payment_id = Column(Integer, ForeignKey("order_details.payment_id"), nullable=False)
+    order_id = Column(Integer, ForeignKey("order_details.order_id"), nullable=False)
+    user_id = Column(Integer, ForeignKey("user_info.id"), nullable=False)
+    status = Column(String(50))
+    created_at = Column(String(50))

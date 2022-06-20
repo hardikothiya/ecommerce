@@ -1,5 +1,6 @@
 import uvicorn
-from fastapi import Depends, FastAPI, HTTPException
+from fastapi import Depends, FastAPI, HTTPException, Body
+from common import send_mail
 
 from sqlalchemy.orm import Session
 
@@ -8,10 +9,9 @@ import models
 import schemas
 from database import engine, SessionLocal  # import d functions
 
+
 models.Base.metadata.create_all(bind=engine)
-
 app = FastAPI(title="Ecom")
-
 
 #  Dependency
 
@@ -29,6 +29,8 @@ def get_db():
 # register API
 @app.post("/register", tags=["User"], response_model=schemas.UserInfo)
 def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
+    send_mail(user.email)
+
     a = crud.get_user_by_email(db, user.email)
 
     if a:
@@ -90,7 +92,7 @@ def add_inventory(inventory: schemas.ItemInventory, db: Session = Depends(get_db
     return crud.add_inventory(db=db, inventory=inventory)
 
 
-@app.post("/get_all_item", tags=["User"])
+@app.post("/get_all_item", tags=["User"],  dependencies=[Depends(RateLimiter(times=2, seconds=5))])
 def get_all_item(db: Session = Depends(get_db)):
     return crud.get_all_item(db)
 
@@ -153,46 +155,6 @@ def mpesa_callback(db: Session = Depends(get_db)):
 
 
 ######################################
-
-from fastapi.param_functions import Form
-from typing import Optional
-
-
-class KycInsertRequestForm:
-    def __init__(
-            self,
-            userid: int = Form(0),
-            country_id: int = Form(0),
-            document_type_id: int = Form(0),
-            name: Optional[str] = Form(''),
-            mode: Optional[str] = Form('INSERT'),
-
-    ):
-        self.mode = mode
-        self.userid = userid
-        self.country_id = country_id
-        self.document_type_id = document_type_id
-        self.name = name
-
-
-@app.post("/account/KYC_select")
-async def KYC_select(
-        form_data: KycInsertRequestForm = Depends()
-):
-    try:
-        print("Form data =======>> ", form_data.userid)
-        execstring = f"exec Sp_KYC '{form_data.mode}',{form_data.userid},{form_data.country_id}," \
-                     f"{form_data.document_type_id}, {form_data.name}"
-        print("string ----->>>", execstring)
-        return "Succeed"
-
-    except Exception as e:
-        return {
-            "code": 500,
-            "status": "error",
-            "message": " Exception {} occurred while KYC_select.".format(e)
-        }
-
 
 if __name__ == "__main__":
     uvicorn.run(app, host="127.0.0.1", port=8000)

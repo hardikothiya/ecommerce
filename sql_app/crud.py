@@ -203,11 +203,28 @@ def get_order(db: Session, user_id: int):
 
 def order_details(db: Session, user_id: int):
     a = get_cart(db=db, user_id=user_id)
-    db_order = models.OrderDetails(bill_amount=a['bill_amount'], quantity=a['quantity'], user_id=user_id)
-    db.add(db_order)
-    db.commit()
-    db.refresh(db_order)
-    return a
+    b = db.query(models.UserAddress).filter(models.UserAddress.user_id == user_id).first()
+    d_order = db.query(models.OrderDetails).filter(models.OrderDetails.user_id == user_id).first()
+
+    if d_order:
+        d_order.bill_amount = a['bill_amount']
+        d_order.quantity = a['quantity']
+        db.commit()
+        db.refresh(d_order)
+        return {
+            "order": a,
+            "shipping_address": b
+        }
+    else:
+        db_order = models.OrderDetails(bill_amount=a['bill_amount'], quantity=a['quantity'], user_id=user_id)
+
+        db.add(db_order)
+        db.commit()
+        db.refresh(db_order)
+        return {
+            "order": a,
+            "shipping_address": b
+        }
 
 
 # Delete item in the cart by id
