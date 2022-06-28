@@ -1,13 +1,13 @@
 import uvicorn
 from fastapi import Depends, FastAPI, HTTPException, Body
-from common import send_mail
+from sql_app.common import send_mail
 
 from sqlalchemy.orm import Session
 
-import crud
-import models
-import schemas
-from database import engine, SessionLocal
+from sql_app import crud
+from sql_app import models
+from sql_app import schemas
+from sql_app.database import engine, SessionLocal
 
 models.Base.metadata.create_all(bind=engine)
 app = FastAPI(title="Ecom")
