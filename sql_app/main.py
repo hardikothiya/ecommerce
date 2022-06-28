@@ -9,9 +9,9 @@ import models
 import schemas
 from database import engine, SessionLocal
 
-
 models.Base.metadata.create_all(bind=engine)
 app = FastAPI(title="Ecom")
+
 
 #  Dependency
 
@@ -155,6 +155,7 @@ def mpesa_callback(db: Session = Depends(get_db)):
 
 
 ######################################
+
 
 if __name__ == "__main__":
     uvicorn.run(app, host="127.0.0.1", port=8000)

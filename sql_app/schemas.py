@@ -117,3 +117,10 @@ class OrderInfo(BaseModel):
 class UserPayment(BaseModel):
     mobile: int
     total: int
+
+
+class StripeEvent(BaseModel):
+    address: str
+    balance: int
+    created: int
+    data: dict
