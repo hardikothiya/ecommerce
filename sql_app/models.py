@@ -1,5 +1,5 @@
 from sqlalchemy import Column, Integer, String, ForeignKey, Boolean, BigInteger
-from database import Base
+from sql_app.database import Base
 
 
 # User Database Model
@@ -108,8 +108,8 @@ class PaymentInfo(Base):
     __tablename__ = "payment_info"
 
     id = Column(Integer, primary_key=True, index=True)
-    payment_id = Column(Integer, ForeignKey("order_details.payment_id"), nullable=False)
-    order_id = Column(Integer, ForeignKey("order_details.order_id"), nullable=False)
-    user_id = Column(Integer, ForeignKey("user_info.id"), nullable=False)
+    paymentId = Column(Integer, ForeignKey("order_details.id"))
+    orderId = Column(Integer)
+    user_id = Column(Integer, ForeignKey("user_info.id"))
     status = Column(String(50))
     created_at = Column(String(50))

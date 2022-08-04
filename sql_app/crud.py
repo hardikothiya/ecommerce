@@ -1,7 +1,7 @@
-from sqlalchemy.orm import Session
-import models, schemas
 import bcrypt
-
+from sqlalchemy.orm import Session
+from sql_app import models
+from sql_app import schemas
 
 # Get user by username function
 def get_user_by_email(db: Session, email: str):
